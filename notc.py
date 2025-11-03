@@ -1,8 +1,18 @@
 import sys
-from modules import parcer
+from modules import scanner
+from modules.rd_parcer.parser import RDParser
+from modules import state
 
-def test(source):
-    parcer.test(source)
+
+def run(source:str):
+    tokens = list(scanner.tokens(source))
+    print(tokens)
+    parser = RDParser(tokens)
+
+    result = parser.parse()
+
+    if (state.hadError): return
+    print ("Accepted")
 
 
 def runPrompt():
@@ -12,11 +22,12 @@ def runPrompt():
             if (line == ""): continue
         except EOFError: break
         except KeyboardInterrupt: break
-        test(line)
+        run(line)
+        state.hadError = False
 
 def runFile(path):
     with open(path) as file:
-        test(file.read())
+        run(file.read())
 
 match len(sys.argv)-1:
     case 0:
