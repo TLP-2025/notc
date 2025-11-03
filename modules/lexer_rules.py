@@ -1,6 +1,6 @@
 from enum import Enum
 
-class Token(Enum):
+class Token(str, Enum):
     # Single-character tokens.
     LEFT_PAREN = 'LEFT_PAREN'
     RIGHT_PAREN = 'RIGHT_PAREN'
