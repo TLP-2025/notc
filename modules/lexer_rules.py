@@ -46,7 +46,6 @@ class Token(Enum):
 
 
     # Keywords.
-    AND = 'AND'
     BOOL = 'BOOL'
     CHAR = 'CHAR'
     CIN = 'CIN'
@@ -59,11 +58,12 @@ class Token(Enum):
     FOR = 'FOR'
     IF = 'IF'
     INT = 'INT'
-    OR = 'OR'
     SHORT = 'SHORT'
-
     TRUE = 'TRUE'
     WHILE = 'WHILE'
+
+    #END
+    EOF = 'EOF'
 
 # Mapping for lex library
 tokens = tuple(map(lambda name: Token[name].value, Token._member_names_,))
@@ -154,7 +154,7 @@ def t_WHILE(t):
 ## Literals.
 t_CHAR_LITERAL = r'\'\w\''
 def t_IDENTIFIER(t): r'[_a-zA-Z]+(?:_|\w)*'; return t
-t_STRING = r'\".*\"'
+t_STRING = r'\"[^\"\n]*\"'
 def t_DECIMAL(t):
     r'\d+\.\d+'
     t.value = float(t.value)
@@ -180,7 +180,7 @@ def t_SLASH(t):
     r'/'
     return t
 # A string containing ignored characters (spaces and tabs)
-t_ignore  = ' \t'
+t_ignore  = ' \t'  
 
 def onCharError(char, line): ...
 
