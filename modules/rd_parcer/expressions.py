@@ -21,3 +21,7 @@ class Literal(Expr):
 class Grouping(Expr):
     def __init__(self, expr:Expr):
         self.expression = expr
+
+class Identifier(Expr):
+     def __init__(self, name: LexToken):
+          self.name = name

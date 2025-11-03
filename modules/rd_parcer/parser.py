@@ -7,13 +7,20 @@ import modules.rd_parcer.statements as Stmt
 
 # GRAMMAR
 # -- STATEMENTS --
-# program        → statement* EOF ;
+# program        → declaration* EOF ;
+
+# declaration    → varDecl
+#                | statement ;
 
 # statement      → exprStmt
-#                | printStmt ;
+#                | coutStmt ;
+
+# varDecl        → ( "short" | "int" | "float" | "double" 
+#                | "bool" | "char") IDENTIFIER 
+#                ( "=" expression )? ";" ;
 
 # exprStmt       → expression ";" ;
-# printStmt      → "print" expression ";" ;
+# coutStmt       → "cout" expression ";" ;
 
 # -- EXPRESSIONS --
 # expression     → equality ;
@@ -23,8 +30,9 @@ import modules.rd_parcer.statements as Stmt
 # factor         → unary ( ( "/" | "*" ) unary )* ;
 # unary          → ( "!" | "-" ) unary
 #                | primary ;
-# primary        → NUMBER | STRING | "true" | "false" | "nil"
-#                | "(" expression ")" ;
+# primary        → NUMBER | DECIMAL | STRING | "true" | "false"
+#                | "(" expression ")"
+#                | IDENTIFIER ;
 
 
 class RDParser:
@@ -37,15 +45,32 @@ class RDParser:
         statements: list[Stmt.Stmt] = []
 
         while (not self.isAtEnd()):
-            statements.append(self.statement())
+            statements.append(self.declaration())
         
         return statements
-        # try:
-        #     return self.expression()
-        # except ParseError as er:
-        #     return None
 
     # RD methods
+
+    def declaration(self) -> Stmt.Stmt:
+        try:
+            if (self.match(Token.SHORT, Token.INT, Token.FLOAT, Token.DOUBLE, Token.CHAR, Token.BOOL)): return self.varDeclaration()
+            return self.statement()
+        except ParseError as e:
+            self._synchronize()
+            return None
+    
+    # multi variable declaration not allowed
+    # would need a varsDeclaration rule containing multiple varDeclaration
+    def varDeclaration(self) -> Stmt.Stmt:
+        type = self.previous().type
+        name: LexToken = self.consume(Token.IDENTIFIER, "Expected variable name.")
+
+        initializer: Expr = None
+        if (self.match(Token.EQUAL)):
+            initializer = self.expression()
+        
+        self.consume(Token.SEMICOLON, "Expected ';' after variable declaration.")
+        return Stmt.Var(type, name, initializer)
 
     def statement(self) -> Stmt.Stmt:
         if (self.match(Token.COUT)): return self.coutStatement()
@@ -55,9 +80,6 @@ class RDParser:
     
     def coutStatement(self):
         expressions:list[Expr.Expr] = []
-        
-        self.consume(Token.LESS_LESS, "Expected '<<' after 'cout'.")
-        expressions.append(self.expression())
 
         while(not self.match(Token.SEMICOLON)):
             self.consume(Token.LESS_LESS, "Expected '<<' after 'cout'.")
@@ -132,6 +154,9 @@ class RDParser:
         
         if (self.match(Token.NUMBER, Token.DECIMAL, Token.STRING)): return Expr.Literal(self.previous().value)
 
+        if (self.match(Token.IDENTIFIER)):
+            return Expr.Identifier(self.previous())
+        
         if (self.match(Token.LEFT_PAREN)):
             expr = self.expression()
             self.consume(Token.RIGHT_PAREN, "Expected ')' after expression.")

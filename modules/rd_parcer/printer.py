@@ -24,9 +24,19 @@ def stmtToStr(statement:Stmt.Stmt):
                 toStr(statement.expression),
                 ')'
             ])
+        
+        case Stmt.Var():
+            return ' '.join([
+                '(',
+                f'[{statement.type}]',
+                statement.name.value,
+                toStr(statement.initializer),
+                ')'
+            ])
     
 
 def toStr(parseTree: Expr.Expr) -> str:
+    if (parseTree is None): return ''
     match parseTree:    
         case Expr.Binary():
             return ' '.join([
