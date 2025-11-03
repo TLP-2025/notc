@@ -13,8 +13,12 @@ import modules.rd_parcer.statements as Stmt
 #                | statement ;
 
 # statement      → exprStmt
+#                | ifStmt 
 #                | coutStmt 
 #                | block;
+
+# ifStmt         → "if" "(" expression ")" statement
+#                ( "else" statement )? ;
 
 # block          → "{" declaration* "}" ;
 
@@ -78,6 +82,7 @@ class RDParser:
         return Stmt.Var(type, name, initializer)
 
     def statement(self) -> Stmt.Stmt:
+        if (self.match(Token.IF)): return self.ifStatement()
         if (self.match(Token.COUT)): return self.coutStatement()
         # if (self.match(Token.CIN)): return self.cinStatement()
 
@@ -85,7 +90,20 @@ class RDParser:
 
         return self.expressionStatement()
     
-    def coutStatement(self):
+    def ifStatement(self) -> Stmt.If:
+        self.consume(Token.LEFT_PAREN, "Expected '(' after 'if'.")
+        condition = self.expression()
+        self.consume(Token.RIGHT_PAREN, "Expected ')' after if condition.")
+
+        thenBranch = self.statement()
+        elseBranch = None
+        if (self.match(Token.ELSE)):
+            elseBranch = self.statement()
+        
+        return Stmt.If(condition, thenBranch, elseBranch)
+        
+
+    def coutStatement(self) -> Stmt.Cout:
         expressions:list[Expr.Expr] = []
 
         while(not self.match(Token.SEMICOLON)):
@@ -94,12 +112,12 @@ class RDParser:
         return Stmt.Cout(expressions)
     
 
-    def expressionStatement(self):
+    def expressionStatement(self) -> Stmt.Expression:
         expr = self.expression()
         self.consume(Token.SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
 
-    def block(self):
+    def block(self) -> Stmt.Block:
         statements: list[Stmt.Stmt] = []
 
         while (not self.check(Token.RIGHT_BRACE) and not self.isAtEnd()):
@@ -112,10 +130,10 @@ class RDParser:
 
     ## Expressions
 
-    def expression(self) -> Expr:
+    def expression(self) -> Expr.Expr:
         return self.assignment()
     
-    def assignment(self) -> Expr:
+    def assignment(self) -> Expr.Assign:
         expr = self.equality()
 
         if (self.match(Token.EQUAL)):

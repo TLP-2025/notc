@@ -23,3 +23,9 @@ class Var(Stmt):
 class Block(Stmt):
     def __init__(self, stmts: list[Stmt]):
         self.statements = stmts
+
+class If(Stmt):
+    def __init__(self, condition: Expr.Expr, thenBranch: Stmt, elseBranch: Stmt):
+        self.condition = condition
+        self.thenBranch = thenBranch
+        self.elseBranch = elseBranch

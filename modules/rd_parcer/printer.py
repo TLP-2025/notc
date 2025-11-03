@@ -8,6 +8,7 @@ def printStmts(statements: list[Stmt.Stmt]):
 
 def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
     offset = ' '*blocks*blockSize
+    if (statement is None): return offset
     match statement:
         case Stmt.Cout():
             return offset + ' '.join([
@@ -39,6 +40,17 @@ def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
             return offset + '{\n'+'\n'.join(
                 [stmtToStr(s, blocks+1) for s in statement.statements]
             )+'\n'+offset+'}'
+        
+        case Stmt.If():
+            return offset + f'\n'.join([
+                '(',
+                'if ' + toStr(statement.condition),
+                stmtToStr(statement.thenBranch, blocks + 1),
+                'else',
+                stmtToStr(statement.elseBranch, blocks + 1),
+                ')'
+                
+            ])
         
     
 
