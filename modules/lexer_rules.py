@@ -111,10 +111,10 @@ def t_CHAR(t):
     r'char'
     return t
 def t_CIN(t):
-    r'CIN'
+    r'cin'
     return t
 def t_COUT(t):
-    r'COUT'
+    r'cout'
     return t
 def t_DOUBLE(t):
     r'double'
