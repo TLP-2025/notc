@@ -13,7 +13,10 @@ import modules.rd_parcer.statements as Stmt
 #                | statement ;
 
 # statement      → exprStmt
-#                | coutStmt ;
+#                | coutStmt 
+#                | block;
+
+# block          → "{" declaration* "}" ;
 
 # varDecl        → ( "short" | "int" | "float" | "double" 
 #                | "bool" | "char") IDENTIFIER 
@@ -78,6 +81,8 @@ class RDParser:
         if (self.match(Token.COUT)): return self.coutStatement()
         # if (self.match(Token.CIN)): return self.cinStatement()
 
+        if (self.match(Token.LEFT_BRACE)): return self.block()
+
         return self.expressionStatement()
     
     def coutStatement(self):
@@ -94,6 +99,14 @@ class RDParser:
         self.consume(Token.SEMICOLON, "Expect ';' after expression.")
         return Stmt.Expression(expr)
 
+    def block(self):
+        statements: list[Stmt.Stmt] = []
+
+        while (not self.check(Token.RIGHT_BRACE) and not self.isAtEnd()):
+            statements.append(self.declaration())
+        
+        self.consume(Token.RIGHT_BRACE, "Expected '}' after block.")
+        return Stmt.Block(statements)
 
 
 
@@ -178,6 +191,8 @@ class RDParser:
             expr = self.expression()
             self.consume(Token.RIGHT_PAREN, "Expected ')' after expression.")
             return Expr.Grouping(expr)
+        
+        print(f'DEBUG: {self.peek()}')
 
         raise _error(self.peek(), "Expected expression.")
         

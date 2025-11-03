@@ -19,3 +19,7 @@ class Var(Stmt):
         self.type = type
         self.name = name
         self.initializer = initializer
+
+class Block(Stmt):
+    def __init__(self, stmts: list[Stmt]):
+        self.statements = stmts

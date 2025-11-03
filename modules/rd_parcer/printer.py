@@ -6,10 +6,11 @@ def printStmts(statements: list[Stmt.Stmt]):
     for s in statements:
         print(stmtToStr(s))
 
-def stmtToStr(statement:Stmt.Stmt):
+def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
+    offset = ' '*blocks*blockSize
     match statement:
         case Stmt.Cout():
-            return ' '.join([
+            return offset + ' '.join([
                 '(',
                 'cout',
                 ' '.join([toStr(e) for e in statement.expressions]),
@@ -18,7 +19,7 @@ def stmtToStr(statement:Stmt.Stmt):
         
 
         case Stmt.Expression():
-            return ' '.join([
+            return offset + ' '.join([
                 '(',
                 'EXPR',
                 toStr(statement.expression),
@@ -26,13 +27,18 @@ def stmtToStr(statement:Stmt.Stmt):
             ])
         
         case Stmt.Var():
-            return ' '.join([
+            return offset + ' '.join([
                 '(',
                 f'[{statement.type}]',
                 statement.name.value,
                 toStr(statement.initializer),
                 ')'
             ])
+        
+        case Stmt.Block():
+            return offset + '{\n'+'\n'.join(
+                [stmtToStr(s, blocks+1) for s in statement.statements]
+            )+'\n'+offset+'}'
         
     
 
