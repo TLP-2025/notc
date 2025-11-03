@@ -1,9 +1,21 @@
 from modules.lexer_rules import Token
 from ply.lex import LexToken
 from modules import state
-from modules.rd_parcer.expressions import *
+import modules.rd_parcer.expressions as Expr
+import modules.rd_parcer.statements as Stmt
+
 
 # GRAMMAR
+# -- STATEMENTS --
+# program        → statement* EOF ;
+
+# statement      → exprStmt
+#                | printStmt ;
+
+# exprStmt       → expression ";" ;
+# printStmt      → "print" expression ";" ;
+
+# -- EXPRESSIONS --
 # expression     → equality ;
 # equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 # comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -21,13 +33,47 @@ class RDParser:
         self.current: int = 0
 
     
-    def parse(self) -> Expr:
-        try:
-            return self.expression()
-        except ParseError as er:
-            return None
+    def parse(self) -> list[Stmt.Stmt]:
+        statements: list[Stmt.Stmt] = []
+
+        while (not self.isAtEnd()):
+            statements.append(self.statement())
+        
+        return statements
+        # try:
+        #     return self.expression()
+        # except ParseError as er:
+        #     return None
 
     # RD methods
+
+    def statement(self) -> Stmt.Stmt:
+        if (self.match(Token.COUT)): return self.coutStatement()
+        # if (self.match(Token.CIN)): return self.cinStatement()
+
+        return self.expressionStatement()
+    
+    def coutStatement(self):
+        expressions:list[Expr.Expr] = []
+        
+        self.consume(Token.LESS_LESS, "Expected '<<' after 'cout'.")
+        expressions.append(self.expression())
+
+        while(not self.match(Token.SEMICOLON)):
+            self.consume(Token.LESS_LESS, "Expected '<<' after 'cout'.")
+            expressions.append(self.expression())  
+        return Stmt.Cout(expressions)
+    
+
+    def expressionStatement(self):
+        expr = self.expression()
+        self.consume(Token.SEMICOLON, "Expect ';' after expression.")
+        return Stmt.Expression(expr)
+
+
+
+
+    ## Expressions
 
     def expression(self) -> Expr:
         return self.equality()
@@ -38,7 +84,7 @@ class RDParser:
         while (self.match(Token.BANG_EQUAL, Token.EQUAL_EQUAL)):
             operator = self.previous()
             right = self.comparison()
-            expr = Binary(expr, operator, right)
+            expr = Expr.Binary(expr, operator, right)
         
         return expr
     
@@ -48,7 +94,7 @@ class RDParser:
         while (self.match(Token.GREATER, Token.GREATER_EQUAL, Token.LESS, Token.LESS_EQUAL)):
             operator = self.previous()
             right: Expr = self.term()
-            expr = Binary(expr, operator, right)
+            expr = Expr.Binary(expr, operator, right)
         
         return expr
     
@@ -58,7 +104,7 @@ class RDParser:
         while (self.match(Token.MINUS, Token.PLUS)):
             operator = self.previous()
             right = self.factor()
-            expr = Binary(expr, operator, right)
+            expr = Expr.Binary(expr, operator, right)
         
         return expr
     
@@ -67,7 +113,7 @@ class RDParser:
         while (self.match(Token.SLASH, Token.STAR)):
             operator = self.previous()
             right = self.unary()
-            expr = Binary(expr, operator, right)
+            expr = Expr.Binary(expr, operator, right)
         return expr
     
     # unary operators
@@ -76,22 +122,22 @@ class RDParser:
         if (self.match(Token.BANG, Token.MINUS)):
             operator = self.previous()
             right = self.unary()
-            return Unary(operator, right)
+            return Expr.Unary(operator, right)
         
         return self.primary()
     
     def primary(self) -> Expr:
-        if (self.match(Token.FALSE)): return Literal(False)
-        if (self.match(Token.TRUE)): return Literal(True)
+        if (self.match(Token.FALSE)): return Expr.Literal(False)
+        if (self.match(Token.TRUE)): return Expr.Literal(True)
         
-        if (self.match(Token.NUMBER, Token.DECIMAL, Token.STRING)): return Literal(self.previous().value)
+        if (self.match(Token.NUMBER, Token.DECIMAL, Token.STRING)): return Expr.Literal(self.previous().value)
 
         if (self.match(Token.LEFT_PAREN)):
             expr = self.expression()
-            self.consume(Token.RIGHT_PAREN)
-            return Grouping(expr)
+            self.consume(Token.RIGHT_PAREN, "Expected ')' after expression.")
+            return Expr.Grouping(expr)
 
-        raise _error(self.peek(), "Expected expresion.")
+        raise _error(self.peek(), "Expected expression.")
         
         
     
@@ -106,10 +152,10 @@ class RDParser:
     # Base methods
         
         
-    def consume(self, type: Token):
+    def consume(self, type: Token, msg:str):
         if (self.check(type)): return self.advance()
 
-        raise _error(self.peek(), f"Expected {type.value} after expression")
+        raise _error(self.peek(), msg)
 
     def match(self, *tokenTypes: Token) -> bool:
         for t in tokenTypes:

@@ -1,7 +1,7 @@
 import sys
 from modules import scanner
 from modules.rd_parcer.parser import RDParser
-from modules.rd_parcer.printer import printTree
+from modules.rd_parcer.printer import printStmts
 from modules import state
 
 
@@ -10,10 +10,10 @@ def run(source:str):
     # print(tokens)
     parser = RDParser(tokens)
 
-    result = parser.parse()
+    statements = parser.parse()
 
     if (state.hadError): return
-    printTree(result)
+    printStmts(statements)
     print ("Accepted")
 
 
