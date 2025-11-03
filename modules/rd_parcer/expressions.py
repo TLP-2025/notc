@@ -3,6 +3,11 @@ from ply.lex import LexToken
 
 class Expr: ...
 
+class Assign(Expr):
+     def __init__(self, name: LexToken, value:Expr):
+          self.name = name
+          self.value = value
+
 class Binary(Expr):
         def __init__(self, leftExpr:Expr, operatorToken:LexToken, rightExpr: Expr):
             self.left = leftExpr

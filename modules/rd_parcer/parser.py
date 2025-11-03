@@ -23,7 +23,9 @@ import modules.rd_parcer.statements as Stmt
 # coutStmt       → "cout" expression ";" ;
 
 # -- EXPRESSIONS --
-# expression     → equality ;
+# expression     → assignment ;
+# assignment     → IDENTIFIER "=" assignment
+#                | equality ;
 # equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 # comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 # term           → factor ( ( "-" | "+" ) factor )* ;
@@ -98,10 +100,25 @@ class RDParser:
     ## Expressions
 
     def expression(self) -> Expr:
-        return self.equality()
+        return self.assignment()
+    
+    def assignment(self) -> Expr:
+        expr = self.equality()
+
+        if (self.match(Token.EQUAL)):
+            equals = self.previous()
+            value = self.assignment()
+
+            if (isinstance(expr, Expr.Identifier)):
+                name = expr.name
+                return Expr.Assign(name, value)
+            
+            _error(equals, "Invalid assignment target.")
+
+        return expr
 
     # binary operators
-    def equality(self) -> Expr:
+    def equality(self) -> Expr.Expr:
         expr = self.comparison()
         while (self.match(Token.BANG_EQUAL, Token.EQUAL_EQUAL)):
             operator = self.previous()
@@ -110,8 +127,8 @@ class RDParser:
         
         return expr
     
-    def comparison(self) -> Expr:
-        expr:Expr = self.term()
+    def comparison(self) -> Expr.Expr:
+        expr = self.term()
 
         while (self.match(Token.GREATER, Token.GREATER_EQUAL, Token.LESS, Token.LESS_EQUAL)):
             operator = self.previous()
@@ -120,8 +137,8 @@ class RDParser:
         
         return expr
     
-    def term(self) -> Expr:
-        expr: Expr = self.factor()
+    def term(self) -> Expr.Expr:
+        expr = self.factor()
 
         while (self.match(Token.MINUS, Token.PLUS)):
             operator = self.previous()
@@ -130,8 +147,8 @@ class RDParser:
         
         return expr
     
-    def factor(self) -> Expr:
-        expr: Expr = self.unary()
+    def factor(self) -> Expr.Expr:
+        expr = self.unary()
         while (self.match(Token.SLASH, Token.STAR)):
             operator = self.previous()
             right = self.unary()
@@ -140,7 +157,7 @@ class RDParser:
     
     # unary operators
 
-    def unary(self) -> Expr:
+    def unary(self) -> Expr.Expr:
         if (self.match(Token.BANG, Token.MINUS)):
             operator = self.previous()
             right = self.unary()
@@ -148,7 +165,7 @@ class RDParser:
         
         return self.primary()
     
-    def primary(self) -> Expr:
+    def primary(self) -> Expr.Expr:
         if (self.match(Token.FALSE)): return Expr.Literal(False)
         if (self.match(Token.TRUE)): return Expr.Literal(True)
         

@@ -33,11 +33,21 @@ def stmtToStr(statement:Stmt.Stmt):
                 toStr(statement.initializer),
                 ')'
             ])
+        
     
 
 def toStr(parseTree: Expr.Expr) -> str:
     if (parseTree is None): return ''
-    match parseTree:    
+    match parseTree:   
+        case Expr.Assign():
+            return ' '.join([
+                '(',
+                parseTree.name.value,
+                '=',
+                toStr(parseTree.value),
+                ')'
+            ])
+        
         case Expr.Binary():
             return ' '.join([
                 '(',
@@ -61,3 +71,6 @@ def toStr(parseTree: Expr.Expr) -> str:
         
         case Expr.Literal():
             return str(parseTree.value)
+        
+        case Expr.Identifier():
+            return str(parseTree.name.value)
