@@ -66,7 +66,7 @@ def toStr(parseTree: Expr.Expr) -> str:
                 ')'
             ])
         
-        case Expr.Binary():
+        case Expr.Binary() | Expr.Logical():
             return ' '.join([
                 '(',
                 parseTree.operator.value,

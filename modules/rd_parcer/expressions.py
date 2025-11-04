@@ -30,3 +30,9 @@ class Grouping(Expr):
 class Identifier(Expr):
      def __init__(self, name: LexToken):
           self.name = name
+
+class Logical(Expr):
+     def __init__(self, left: Expr, operator: LexToken, right:Expr):
+          self.left = left
+          self.operator = operator
+          self.right = right

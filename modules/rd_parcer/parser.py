@@ -32,7 +32,11 @@ import modules.rd_parcer.statements as Stmt
 # -- EXPRESSIONS --
 # expression     → assignment ;
 # assignment     → IDENTIFIER "=" assignment
-#                | equality ;
+#                | logic_or ;
+
+# logic_or       → logic_and ( "or" logic_and )* ;
+# logic_and      → equality ( "and" equality )* ;
+
 # equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 # comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 # term           → factor ( ( "-" | "+" ) factor )* ;
@@ -133,8 +137,8 @@ class RDParser:
     def expression(self) -> Expr.Expr:
         return self.assignment()
     
-    def assignment(self) -> Expr.Assign:
-        expr = self.equality()
+    def assignment(self) -> Expr.Expr:
+        expr = self.orExpr()
 
         if (self.match(Token.EQUAL)):
             equals = self.previous()
@@ -149,6 +153,26 @@ class RDParser:
         return expr
 
     # binary operators
+    def orExpr(self) -> Expr.Expr:
+        expr = self.andExpr()
+
+        while (self.match(Token.BAR_BAR)):
+            operator = self.previous()
+            right = self.andExpr()
+            expr = Expr.Logical(expr, operator, right)
+        
+        return expr
+
+    def andExpr(self) -> Expr.Expr:
+        expr = self.equality()
+
+        while (self.match(Token.AMP_AMP)):
+            operator = self.previous()
+            right = self.equality()
+            expr = Expr.Logical(expr, operator, right)
+        
+        return expr
+    
     def equality(self) -> Expr.Expr:
         expr = self.comparison()
         while (self.match(Token.BANG_EQUAL, Token.EQUAL_EQUAL)):
