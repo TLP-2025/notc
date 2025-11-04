@@ -22,7 +22,7 @@ def stmtToStr(statement:Stmt.Stmt, tabSize = 4):
             return offset + ' '.join([
                 '(',
                 'cin',
-                ' '.join([toStr(e) for e in statement.variables]),
+                ' '.join([v.value for v in statement.variables]),
                 ')'
             ])
         
