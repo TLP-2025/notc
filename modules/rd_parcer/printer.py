@@ -43,6 +43,9 @@ def stmtToStr(statement:Stmt.Stmt, tabSize = 4):
                 toStr(statement.initializer),
                 ')'
             ])
+
+        case Stmt.Vars():
+            return '\n'.join([offset + stmtToStr(s,0) for s in statement.declarations])
         
         case Stmt.Block():
             return '\n'.join(

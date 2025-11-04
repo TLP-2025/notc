@@ -24,6 +24,10 @@ class Var(Stmt):
         self.name = name
         self.initializer = initializer
 
+class Vars(Stmt):
+    def __init__(self, declarations: list[Var]):
+        self.declarations = declarations
+
 class Block(Stmt):
     def __init__(self, stmts: list[Stmt]):
         self.statements = stmts

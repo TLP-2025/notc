@@ -31,9 +31,9 @@ import modules.rd_parcer.statements as Stmt
 
 # block          → "{" declaration* "}" ;
 
-# varDecl        → ( "short" | "int" | "float" | "double" 
-#                | "bool" | "char") IDENTIFIER 
-#                ( "=" expression )? ";" ;
+# varsDecl        → ( "short" | "int" | "float" | "double" 
+#                | "bool" | "char") (IDENTIFIER 
+#                ( "=" expression )?)+ ";" ;
 
 # exprStmt       → expression ";" ;
 # coutStmt       → "cout" ("<<" expression)* ";" ;
@@ -84,24 +84,33 @@ class RDParser:
 
     def declaration(self) -> Stmt.Stmt:
         try:
-            if (self.match(*_variableTypes)): return self.varDeclaration()
+            if (self.match(*_variableTypes)): return self.varsDeclaration()
             return self.statement()
         except ParseError as e:
             self._synchronize()
             return None
     
-    # multi variable declaration not allowed
-    # would need a varsDeclaration rule containing multiple varDeclaration
-    def varDeclaration(self) -> Stmt.Stmt:
-        type = self.previous().type
-        name: LexToken = self.consume(Token.IDENTIFIER, "Expected variable name.")
 
+    def varsDeclaration(self) -> Stmt.Stmt:
+        type = self.previous().type
+        declarations: list[Stmt.Var] = []
+        
+        declarations.append(self._var_sub_declaration(type))
+        
+        while (self.match(Token.COMMA)):
+            declarations.append(self._var_sub_declaration(type))
+        
+        self.consume(Token.SEMICOLON, "Expected ';' after variable declaration.")
+        return Stmt.Vars(declarations)
+
+    def _var_sub_declaration(self, type:LexToken) -> Stmt.Var:
+        name: LexToken = self.consume(Token.IDENTIFIER, "Expected variable name.")
         initializer: Expr = None
         if (self.match(Token.EQUAL)):
             initializer = self.expression()
         
-        self.consume(Token.SEMICOLON, "Expected ';' after variable declaration.")
         return Stmt.Var(type, name, initializer)
+    
 
     def statement(self) -> Stmt.Stmt:
         if (self.match(Token.FOR)): return self.forStatement()
@@ -122,7 +131,7 @@ class RDParser:
         if (self.match(Token.SEMICOLON)):
             initializer = None
         elif (self.match(*_variableTypes)):
-            initializer = self.varDeclaration()
+            initializer = self.varsDeclaration()
         else:
             initializer = self.expressionStatement()
         
