@@ -12,6 +12,10 @@ class Cout(Stmt):
     def __init__(self, exprs: list[Expr.Expr]):
         self.expressions: list[Expr.Expr] = exprs
 
+class Cin(Stmt):
+    def __init__(self, vars: list[LexToken]):
+        self.variables: list[LexToken] = vars
+
 # There should be a separate node for each type.
 # But statements only need to be recognized, not evaluated
 class Var(Stmt):

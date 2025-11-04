@@ -18,6 +18,14 @@ def stmtToStr(statement:Stmt.Stmt, tabSize = 4):
                 ')'
             ])
         
+        case Stmt.Cin():
+            return offset + ' '.join([
+                '(',
+                'cin',
+                ' '.join([toStr(e) for e in statement.variables]),
+                ')'
+            ])
+        
 
         case Stmt.Expression():
             return offset + ' '.join([

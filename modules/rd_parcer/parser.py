@@ -16,6 +16,7 @@ import modules.rd_parcer.statements as Stmt
 #                | forStmt 
 #                | ifStmt 
 #                | coutStmt 
+#                | cinStmt 
 #                | whileStmt 
 #                | block;
 
@@ -35,7 +36,8 @@ import modules.rd_parcer.statements as Stmt
 #                ( "=" expression )? ";" ;
 
 # exprStmt       → expression ";" ;
-# coutStmt       → "cout" expression ";" ;
+# coutStmt       → "cout" ("<<" expression)* ";" ;
+# cinStmt        → "cin"  (">>" IDENTIFIER)* ";" ;
 
 # -- EXPRESSIONS --
 # expression     → assignment ;
@@ -105,7 +107,7 @@ class RDParser:
         if (self.match(Token.FOR)): return self.forStatement()
         if (self.match(Token.IF)): return self.ifStatement()
         if (self.match(Token.COUT)): return self.coutStatement()
-        # if (self.match(Token.CIN)): return self.cinStatement()
+        if (self.match(Token.CIN)): return self.cinStatement()
 
         if (self.match(Token.WHILE)): return self.whileStatement()
 
@@ -181,6 +183,14 @@ class RDParser:
             self.consume(Token.LESS_LESS, "Expected '<<' after 'cout'.")
             expressions.append(self.expression())  
         return Stmt.Cout(expressions)
+    
+    def cinStatement(self) -> Stmt.Cin:
+        vars:list[LexToken] = []
+
+        while(not self.match(Token.SEMICOLON)):
+            self.consume(Token.GREATER_GREATER, "Expected '>>' after 'cin'.")
+            vars.append(self.consume(Token.IDENTIFIER, "Expected identifier after '>>'."))
+        return Stmt.Cin(vars)
     
 
     def expressionStatement(self) -> Stmt.Expression:
