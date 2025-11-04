@@ -50,7 +50,7 @@ import modules.rd_parcer.statements as Stmt
 # equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 # comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 # term           → factor ( ( "-" | "+" ) factor )* ;
-# factor         → unary ( ( "/" | "*" ) unary )* ;
+# factor         → unary ( ( "/" | "*" | "%" ) unary )* ;
 # unary          → ( "!" | "-" ) unary
 #                | primary ;
 # primary        → NUMBER | DECIMAL | STRING | "true" | "false"
@@ -290,7 +290,7 @@ class RDParser:
     
     def factor(self) -> Expr.Expr:
         expr = self.unary()
-        while (self.match(Token.SLASH, Token.STAR)):
+        while (self.match(Token.SLASH, Token.STAR, Token.PERCENT)):
             operator = self.previous()
             right = self.unary()
             expr = Expr.Binary(expr, operator, right)
