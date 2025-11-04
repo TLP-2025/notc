@@ -13,10 +13,15 @@ import modules.rd_parcer.statements as Stmt
 #                | statement ;
 
 # statement      → exprStmt
+#                | forStmt 
 #                | ifStmt 
 #                | coutStmt 
 #                | whileStmt 
 #                | block;
+
+# forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+#                  expression? ";"
+#                  expression? ")" statement ;
 
 # whileStmt      → "while" "(" expression ")" statement ;
 
@@ -50,6 +55,14 @@ import modules.rd_parcer.statements as Stmt
 #                | "(" expression ")"
 #                | IDENTIFIER ;
 
+_variableTypes = [
+    Token.BOOL,
+    Token.CHAR,
+    Token.DOUBLE,
+    Token.FLOAT,
+    Token.INT,
+    Token.SHORT
+]
 
 class RDParser:
     def __init__(self,tokens:list[LexToken]):
@@ -69,7 +82,7 @@ class RDParser:
 
     def declaration(self) -> Stmt.Stmt:
         try:
-            if (self.match(Token.SHORT, Token.INT, Token.FLOAT, Token.DOUBLE, Token.CHAR, Token.BOOL)): return self.varDeclaration()
+            if (self.match(*_variableTypes)): return self.varDeclaration()
             return self.statement()
         except ParseError as e:
             self._synchronize()
@@ -89,6 +102,7 @@ class RDParser:
         return Stmt.Var(type, name, initializer)
 
     def statement(self) -> Stmt.Stmt:
+        if (self.match(Token.FOR)): return self.forStatement()
         if (self.match(Token.IF)): return self.ifStatement()
         if (self.match(Token.COUT)): return self.coutStatement()
         # if (self.match(Token.CIN)): return self.cinStatement()
@@ -98,6 +112,44 @@ class RDParser:
         if (self.match(Token.LEFT_BRACE)): return self.block()
 
         return self.expressionStatement()
+
+    def forStatement(self) -> Stmt.Stmt:
+        self.consume(Token.LEFT_PAREN, "Expected '(' after 'for'.")
+
+        initializer: Stmt.Stmt
+        if (self.match(Token.SEMICOLON)):
+            initializer = None
+        elif (self.match(*_variableTypes)):
+            initializer = self.varDeclaration()
+        else:
+            initializer = self.expressionStatement()
+        
+        condition: Expr.Expr = None
+        if (not self.check(Token.SEMICOLON)):
+            condition = self.expression()
+        self.consume(Token.SEMICOLON, "Expected ';' after loop condition.")
+
+        increment: Expr.Expr = None
+        if (not self.check(Token.RIGHT_PAREN)):
+            increment = self.expression()
+        self.consume(Token.RIGHT_PAREN, "Exptected ')' after for clauses")
+
+        body = self.statement()
+
+        # Desugaring
+
+        ## execute increment at end of loop
+        if (increment is not None):
+            body = Stmt.Block([body, Stmt.Expression(increment)])
+        
+        if (condition is None):
+            condition = Expr.Literal(True)
+        body = Stmt.While(condition, body)
+
+        if (initializer is not None):
+            body = Stmt.Block([initializer, body])
+        
+        return body
 
     def whileStatement(self) -> Stmt.While:
         self.consume(Token.LEFT_PAREN, "Expected '(' after 'while'.")
