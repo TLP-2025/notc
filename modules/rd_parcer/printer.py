@@ -43,8 +43,7 @@ def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
         
         case Stmt.If():
             return offset + f'\n'.join([
-                '(',
-                'if ' + toStr(statement.condition),
+                '(if ' + toStr(statement.condition),
                 stmtToStr(statement.thenBranch, blocks + 1),
                 'else',
                 stmtToStr(statement.elseBranch, blocks + 1),
@@ -52,6 +51,11 @@ def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
                 
             ])
         
+        case Stmt.While():
+            return offset + '\n'.join([
+                f'(while {toStr(statement.condition)}',
+                stmtToStr(statement.body, blocks+1),
+            ])+'\n'+offset+')'
     
 
 def toStr(parseTree: Expr.Expr) -> str:

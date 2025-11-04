@@ -15,7 +15,10 @@ import modules.rd_parcer.statements as Stmt
 # statement      → exprStmt
 #                | ifStmt 
 #                | coutStmt 
+#                | whileStmt 
 #                | block;
+
+# whileStmt      → "while" "(" expression ")" statement ;
 
 # ifStmt         → "if" "(" expression ")" statement
 #                ( "else" statement )? ;
@@ -90,9 +93,21 @@ class RDParser:
         if (self.match(Token.COUT)): return self.coutStatement()
         # if (self.match(Token.CIN)): return self.cinStatement()
 
+        if (self.match(Token.WHILE)): return self.whileStatement()
+
         if (self.match(Token.LEFT_BRACE)): return self.block()
 
         return self.expressionStatement()
+
+    def whileStatement(self) -> Stmt.While:
+        self.consume(Token.LEFT_PAREN, "Expected '(' after 'while'.")
+        condition = self.expression()
+        self.consume(Token.RIGHT_PAREN, "Expected '(' after condition.")
+
+        body = self.statement()
+
+        return Stmt.While(condition, body)
+
     
     def ifStatement(self) -> Stmt.If:
         self.consume(Token.LEFT_PAREN, "Expected '(' after 'if'.")

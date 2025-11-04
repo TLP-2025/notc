@@ -29,3 +29,8 @@ class If(Stmt):
         self.condition = condition
         self.thenBranch = thenBranch
         self.elseBranch = elseBranch
+
+class While(Stmt):
+    def __init__(self, condition: Expr.Expr, body: Stmt):
+        self.condition = condition
+        self.body = body
