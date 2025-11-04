@@ -4,10 +4,10 @@ import modules.rd_parcer.statements as Stmt
 
 def printStmts(statements: list[Stmt.Stmt]):
     for s in statements:
-        print(stmtToStr(s))
+        print(stmtToStr(s, tabSize=0))
 
-def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
-    offset = ' '*blocks*blockSize
+def stmtToStr(statement:Stmt.Stmt, tabSize = 4):
+    offset = ' '*tabSize
     if (statement is None): return offset
     match statement:
         case Stmt.Cout():
@@ -37,25 +37,28 @@ def stmtToStr(statement:Stmt.Stmt, blocks:int = 0, blockSize = 4):
             ])
         
         case Stmt.Block():
-            return offset + '{\n'+'\n'.join(
-                [stmtToStr(s, blocks+1) for s in statement.statements]
-            )+'\n'+offset+'}'
+            return '\n'.join(
+                [f'{offset}{{']
+                + [offset+stmtToStr(s) for s in statement.statements]
+                + [f'{offset}}}']
+            )
         
         case Stmt.If():
-            return offset + f'\n'.join([
+            return '\n'.join(map( lambda s: offset + s ,[
                 '(if ' + toStr(statement.condition),
-                stmtToStr(statement.thenBranch, blocks + 1),
+                stmtToStr(statement.thenBranch),
                 'else',
-                stmtToStr(statement.elseBranch, blocks + 1),
+                stmtToStr(statement.elseBranch),
                 ')'
                 
-            ])
+            ]))
         
         case Stmt.While():
-            return offset + '\n'.join([
+            return '\n'.join(map(lambda s: offset+s, [
                 f'(while {toStr(statement.condition)}',
-                stmtToStr(statement.body, blocks+1),
-            ])+'\n'+offset+')'
+                stmtToStr(statement.body),
+                ')'
+            ]))
     
 
 def toStr(parseTree: Expr.Expr) -> str:
