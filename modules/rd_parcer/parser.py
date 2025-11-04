@@ -53,7 +53,7 @@ import modules.rd_parcer.statements as Stmt
 # factor         → unary ( ( "/" | "*" | "%" ) unary )* ;
 # unary          → ( "!" | "-" ) unary
 #                | primary ;
-# primary        → NUMBER | DECIMAL | STRING | "true" | "false"
+# primary        → NUMBER | DECIMAL | STRING | "true" | "false" | ENDL
 #                | "(" expression ")"
 #                | IDENTIFIER ;
 
@@ -310,7 +310,7 @@ class RDParser:
         if (self.match(Token.FALSE)): return Expr.Literal(False)
         if (self.match(Token.TRUE)): return Expr.Literal(True)
         
-        if (self.match(Token.NUMBER, Token.DECIMAL, Token.STRING)): return Expr.Literal(self.previous().value)
+        if (self.match(Token.NUMBER, Token.DECIMAL, Token.STRING, Token.ENDL)): return Expr.Literal(self.previous().value)
 
         if (self.match(Token.IDENTIFIER)):
             return Expr.Identifier(self.previous())
