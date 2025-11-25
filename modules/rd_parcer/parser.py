@@ -1,5 +1,5 @@
 from modules.lexer_rules import Token
-from ply.lex import LexToken
+from modules.ply_lex import LexToken
 from modules import state
 import modules.rd_parcer.expressions as Expr
 import modules.rd_parcer.statements as Stmt
